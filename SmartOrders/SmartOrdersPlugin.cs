@@ -14,7 +14,7 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public static IModdingContext Context { get; private set; } = null!;
     public static IUIHelper UiHelper { get; private set; } = null!;
-    public static Settings Settings { get; private set; }
+    public static Settings Settings { get; private set; }  = null!;
 
     private readonly ILogger _Logger = Log.ForContext<SmartOrdersPlugin>()!;
 

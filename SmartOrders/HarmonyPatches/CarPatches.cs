@@ -30,7 +30,7 @@ public static class CarPatches
     [HarmonyPatch(new Type[] { typeof(LogicalEnd), typeof(EndGearStateKey), typeof(bool) })]
     public static void ApplyEndGearChange(LogicalEnd logicalEnd, EndGearStateKey endGearStateKey, bool boolValue, Car __instance)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared!.IsEnabled)
         {
             return;
         }

@@ -13,7 +13,7 @@ public static class AutoEngineerOrderHelperPatches
     public static void SetOrdersValue(BaseLocomotive ____locomotive, AutoEngineerMode? mode = null, int? maxSpeedMph = null, float? distance = null)
 
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared!.IsEnabled)
         {
             return;
         }

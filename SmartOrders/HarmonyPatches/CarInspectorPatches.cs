@@ -29,7 +29,7 @@ public static class CarInspectorPatches
     [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
     private static bool PopulatePanel(UIPanelBuilder builder, CarInspector __instance, Car ____car, UIState<string> ____selectedTabState, HashSet<IDisposable> ____observers)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared!.IsEnabled)
         {
             return true;
         }

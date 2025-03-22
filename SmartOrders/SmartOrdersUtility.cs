@@ -52,7 +52,7 @@ public static class SmartOrdersUtility
 
     public static float? GetDistanceForSwitchOrder(int switchesToFind, bool clearSwitchesUnderTrain, bool stopBeforeSwitch, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared!.IsEnabled)
         {
             return null;
         }
@@ -92,7 +92,7 @@ public static class SmartOrdersUtility
             DebugLog("Error: couldn't find coupledCarsCached");
         }
 
-        var totalLength = coupledCars.Sum(car => car.carLength) + 1f * (coupledCars.Count - 1); // add 1m separation per car
+        var totalLength = coupledCars.Sum(car => car.carLength) + 1f * (coupledCars!.Count - 1); // add 1m separation per car
 
         DebugLog($"Found locomotive {locomotive.DisplayName} with {coupledCars.Count} cars");
 
@@ -186,12 +186,12 @@ public static class SmartOrdersUtility
                     if (node.isThrown)
                     {
                         DebugLog("Following thrown exit");
-                        segment = switchExitReverse;
+                        segment = switchExitReverse!;
                     }
                     else
                     {
                         DebugLog("Following normal exit");
-                        segment = switchExitNormal;
+                        segment = switchExitNormal!;
                     }
                 }
             }
@@ -214,7 +214,7 @@ public static class SmartOrdersUtility
 
         if (foundAllSwitches)
         {
-            var node = segment.NodeForEnd(segmentEnd);
+            var node = segment!.NodeForEnd(segmentEnd);
 
             graph.DecodeSwitchAt(node, out var switchEnterSegment, out _, out _);
             var nodeFoulingDistance = graph.CalculateFoulingDistance(node);
@@ -438,7 +438,7 @@ public static class SmartOrdersUtility
 
         var carsMaybePlural = carsToDisconnectCount > 1 ? "cars" : "car";
         Say($"Disconnecting {groupsString} totalling {carsToDisconnectCount} {carsMaybePlural} from the {end} of the train");
-        DebugLog($"Disconnecting coupler between {newEndCar.DisplayName} and {carToDisconnect.DisplayName}");
+        DebugLog($"Disconnecting coupler between {newEndCar.DisplayName} and {carToDisconnect!.DisplayName}");
 
         var newEndCarEndToDisconnect = (newEndCar.CoupledTo(LogicalEnd.A) == carToDisconnect) ? LogicalEnd.A : LogicalEnd.B;
         var carToDisconnectEndToDisconnect = (carToDisconnect.CoupledTo(LogicalEnd.A) == newEndCar) ? LogicalEnd.A : LogicalEnd.B;
