@@ -11,6 +11,7 @@ using Model;
 using Model.AI;
 using Model.Definition;
 using Model.Ops;
+using Network.Messages;
 using SmartOrders.Extensions;
 using UI.Builder;
 using UI.CarInspector;
@@ -76,9 +77,9 @@ public static class CarInspectorPatches
 
     private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
-        builder.AddLabel("Direction");
+        builder.AddField("Direction                    Consist status","");
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
-        {
+        {            
             builder.AddObserver(persistence.ObserveOrders(delegate
             {
                 builder.Rebuild();
@@ -93,13 +94,14 @@ public static class CarInspectorPatches
                 helper.SetOrdersValue(null, true, null, null);
                 builder.Rebuild();
             });
+            BuildHandbrakeAndAirHelperButtons(builder, _car);
         });
-        builder.AddLabel("Contextual");
-        BuildHandbrakeAndAirHelperButtons(builder, _car);
-        builder.AddLabel("Yard AI switches");
+        builder.AddField("Switches","");
         BuildSwitchYardAIButtons(builder, _car, persistence, helper);
-        builder.AddLabel("Yard AI car lengths");
+        builder.AddField("Car lengths","");
         BuildAlternateCarLengthsButtons(builder, _car, helper);
+        builder.AddField("Uncouple groups","");
+        BuildDisconnectCarsButtons(builder, (BaseLocomotive)_car, persistence, helper);
         builder.AddExpandingVerticalSpacer();
     }
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -168,7 +170,7 @@ public static class CarInspectorPatches
 
               if (cars.Any(c => c.air!.handbrakeApplied))
               {
-                  strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () =>
+                  strip.AddButton($"{TextSprites.HandbrakeWheel}", () =>
                   {
                       SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
                       strip.Rebuild();
@@ -178,7 +180,7 @@ public static class CarInspectorPatches
 
               if (cars.Any(c => c.EndAirSystemIssue()))
               {
-                  strip.AddButton("Connect Air", () =>
+                  strip.AddButton("Fix Air", () =>
                   {
                       SmartOrdersUtility.ConnectAir(locomotive);
                       strip.Rebuild();
@@ -240,7 +242,7 @@ public static class CarInspectorPatches
         {
             builder.ButtonStrip(
             strip =>
-            {
+            {              
                 strip.AddButton("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                     .Tooltip("1 switch", "Move 1 switch");
 
@@ -295,8 +297,7 @@ public static class CarInspectorPatches
     static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
         AutoEngineerMode mode2 = helper.Mode;
-
-        builder.AddField("Disconnect", builder.ButtonStrip(delegate (UIPanelBuilder bldr)
+        builder.ButtonStrip(delegate (UIPanelBuilder bldr)
         {
             bldr.AddButton("All", delegate
             {
@@ -338,6 +339,6 @@ public static class CarInspectorPatches
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 999, persistence);
             }).Tooltip("Disconnect all cars with waybills from the front", "Disconnect all cars with waybills from the front");
 
-        }, 4)).Tooltip("Disconnect Car Groups", "Disconnect groups of cars headed for the same location from the front (positive numbers) or the back (negative numbers) in the direction of travel");
+        }, 4).Tooltip("Disconnect Car Groups", "Disconnect groups of cars headed for the same location from the front (positive numbers) or the back (negative numbers) in the direction of travel");
     }
 }
