@@ -77,7 +77,7 @@ public static class CarInspectorPatches
 
     private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
-        builder.AddField("Direction                    Consist status","");
+        builder.AddField("Direction","");
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {            
             builder.AddObserver(persistence.ObserveOrders(delegate
@@ -126,35 +126,35 @@ public static class CarInspectorPatches
     {
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
-            builder.AddButton("Stop", delegate
+            builder.AddButtonCompact("Stop", delegate
             {
                 MoveDistance(helper, locomotive, 0f);
             });
-            builder.AddButton("½", delegate
+            builder.AddButtonCompact("½", delegate
             {
                 MoveDistance(helper, locomotive, 6.1f);
             });
-            builder.AddButton("1", delegate
+            builder.AddButtonCompact("1", delegate
             {
                 MoveDistance(helper, locomotive, 12.2f);
             });
-            builder.AddButton("2", delegate
+            builder.AddButtonCompact("2", delegate
             {
                 MoveDistance(helper, locomotive, 24.4f);
             });
-            builder.AddButton("5", delegate
+            builder.AddButtonCompact("5", delegate
             {
                 MoveDistance(helper, locomotive, 61f);
             });
-            builder.AddButton("10", delegate
+            builder.AddButtonCompact("10", delegate
             {
                 MoveDistance(helper, locomotive, 122f);
             });
-            builder.AddButton("20", delegate
+            builder.AddButtonCompact("20", delegate
             {
                 MoveDistance(helper, locomotive, 244f);
             });
-            builder.AddButton("inf", delegate
+            builder.AddButtonCompact("inf", delegate
             {
                 MoveDistance(helper, locomotive, 12.192f * 1_000_000.5f);
             }).Tooltip("INF", "Move infinity car lengths");
@@ -243,13 +243,13 @@ public static class CarInspectorPatches
             builder.ButtonStrip(
             strip =>
             {              
-                strip.AddButton("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                strip.AddButtonCompact("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                     .Tooltip("1 switch", "Move 1 switch");
 
                 for (var i = 2; i <= 10; i++)
                 {
                     var numSwitches = i;
-                    strip.AddButton($"{numSwitches}", () => MovePastSwitches(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                    strip.AddButtonCompact($"{numSwitches}", () => MovePastSwitches(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                         .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                 }
             }, 4);
@@ -299,42 +299,42 @@ public static class CarInspectorPatches
         AutoEngineerMode mode2 = helper.Mode;
         builder.ButtonStrip(delegate (UIPanelBuilder bldr)
         {
-            bldr.AddButton("All", delegate
+            bldr.AddButtonCompact("All", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, -999, persistence);
             }).Tooltip("Disconnect all cars with waybills from the back", "Disconnect all cars with waybills from the back");
 
-            bldr.AddButton("-3", delegate
+            bldr.AddButtonCompact("-3", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, -3, persistence);
             }).Tooltip("Disconnect 3 Car Groups From Back", "Disconnect 3 groups of cars from the back that are headed to 3 different locations");
 
-            bldr.AddButton("-2", delegate
+            bldr.AddButtonCompact("-2", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, -2, persistence);
             }).Tooltip("Disconnect 2 Car Groups From Back", "Disconnect 2 groups of cars from the back that are headed to 2 different locations");
 
-            bldr.AddButton("-1", delegate
+            bldr.AddButtonCompact("-1", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, -1, persistence);
             }).Tooltip("Disconnect 1 Car Group From Back", "Disconnect all cars from the back of the train headed to the same location");
 
-            bldr.AddButton("1", delegate
+            bldr.AddButtonCompact("1", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 1, persistence);
             }).Tooltip("Disconnect 1 Car Group From Front", "Disconnect all cars from the front of the train headed to the same location");
 
-            bldr.AddButton("2", delegate
+            bldr.AddButtonCompact("2", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 2, persistence);
             }).Tooltip("Disconnect 2 Car Groups From Front", "Disconnect 2 groups of cars from the front that are headed to 2 different locations");
 
-            bldr.AddButton("3", delegate
+            bldr.AddButtonCompact("3", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 3, persistence);
             }).Tooltip("Disconnect 3 Car Groups From Front", "Disconnect 3 groups of cars from the front that are headed to 3 different locations");
 
-            bldr.AddButton("All", delegate
+            bldr.AddButtonCompact("All", delegate
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 999, persistence);
             }).Tooltip("Disconnect all cars with waybills from the front", "Disconnect all cars with waybills from the front");
