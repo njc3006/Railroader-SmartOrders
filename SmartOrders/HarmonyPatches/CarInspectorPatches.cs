@@ -78,10 +78,10 @@ public static class CarInspectorPatches
     private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
         builder.FieldLabelWidth = new float?(75f);
-        builder.AddField("Direction",       
+        builder.AddField("Direction",
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
-        {   
-            
+        {
+
             builder.AddObserver(persistence.ObserveOrders(delegate
             {
                 builder.Rebuild();
@@ -98,11 +98,11 @@ public static class CarInspectorPatches
             });
             BuildHandbrakeAndAirHelperButtons(builder, _car);
         }));
-        
+
         BuildSwitchYardAIButtons(builder, _car, persistence, helper);
-        
+
         BuildAlternateCarLengthsButtons(builder, _car, helper);
-        
+
         BuildDisconnectCarsButtons(builder, (BaseLocomotive)_car, persistence, helper);
     }
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -129,7 +129,7 @@ public static class CarInspectorPatches
         builder.AddField("Car lengths",
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
-            
+
             builder.AddButtonCompact("Stop", delegate
             {
                 MoveDistance(helper, locomotive, 0f);
@@ -167,33 +167,33 @@ public static class CarInspectorPatches
 
     private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
-        
-          builder.ButtonStrip(strip =>
-          {
-              var cars = locomotive.EnumerateCoupled().ToList();
 
-              if (cars.Any(c => c.air!.handbrakeApplied))
-              {
-                  strip.AddButton($"{TextSprites.HandbrakeWheel}", () =>
-                  {
-                      SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
-                      strip.Rebuild();
-                  })
-                      .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
-              }
+        builder.ButtonStrip(strip =>
+        {
+            var cars = locomotive.EnumerateCoupled().ToList();
 
-              if (cars.Any(c => c.EndAirSystemIssue()))
-              {
-                  strip.AddButton("Fix Air", () =>
-                  {
-                      SmartOrdersUtility.ConnectAir(locomotive);
-                      strip.Rebuild();
-                  })
-                      .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
-              }
-              strip.RebuildOnInterval(5f);
-          }
-       );
+            if (cars.Any(c => c.air!.handbrakeApplied))
+            {
+                strip.AddButton($"{TextSprites.HandbrakeWheel}", () =>
+                {
+                    SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
+                    strip.Rebuild();
+                })
+                    .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
+            }
+
+            if (cars.Any(c => c.EndAirSystemIssue()))
+            {
+                strip.AddButton("Fix Air", () =>
+                {
+                    SmartOrdersUtility.ConnectAir(locomotive);
+                    strip.Rebuild();
+                })
+                    .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
+            }
+            strip.RebuildOnInterval(5f);
+        }
+     );
     }
 
     private static void BuildSwitchYardAIButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
@@ -213,7 +213,7 @@ public static class CarInspectorPatches
         builder.AddField("Switches",
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
-            
+
             builder.AddObserver(locomotive.KeyValueObject.Observe("CLEAR_SWITCH_MODE", delegate
             {
                 builder.Rebuild();
@@ -243,12 +243,13 @@ public static class CarInspectorPatches
             }).Height(60).Tooltip("Clear Under", "Clear switches under the train. Choose the number of switches below");
         })).Height(60);
 
-
+        builder.FieldLabelWidth = new float?(75f);
+        builder.AddField("Action",
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.ButtonStrip(
             strip =>
-            {              
+            {
                 strip.AddButtonCompact("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                     .Tooltip("1 switch", "Move 1 switch");
 
@@ -259,7 +260,7 @@ public static class CarInspectorPatches
                         .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                 }
             }, 4);
-        });
+        }));
     }
 
     private static void MoveDistance(AutoEngineerOrdersHelper helper, BaseLocomotive locomotive, float distance)
@@ -299,7 +300,6 @@ public static class CarInspectorPatches
         }
     }
 
-    // Not currently used but could be added if we want to merge FlyShuntUI into SmartOrders
     static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
         AutoEngineerMode mode2 = helper.Mode;
@@ -346,7 +346,11 @@ public static class CarInspectorPatches
             {
                 SmartOrdersUtility.DisconnectCarGroups(locomotive, 999, persistence);
             }).Tooltip("Disconnect all cars with waybills from the front", "Disconnect all cars with waybills from the front");
+            builder.AddButtonCompact("RA", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, 998, persistence);
+            }).Tooltip("Disconnect all cars with waybills from the front", "Disconnect all cars with waybills from the front");
 
         }, 4).Tooltip("Disconnect Car Groups", "Disconnect groups of cars headed for the same location from the front (positive numbers) or the back (negative numbers) in the direction of travel"));
-        }
+    }
 }
