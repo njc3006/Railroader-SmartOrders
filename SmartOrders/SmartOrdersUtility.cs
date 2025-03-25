@@ -41,6 +41,7 @@ public static class SmartOrdersUtility
                     StateManager.ApplyLocal(new SetGladhandsConnected(car.id, car2.id, true));
                 }
             }
+            else { car.ApplyEndGearChange(end, EndGearStateKey.Anglecock, 0f); }
         }
     }
 
@@ -300,7 +301,6 @@ public static class SmartOrdersUtility
 
         return distanceInMeters;
     }
-
     public static void DebugLog(string message)
     {
         if (!SmartOrdersPlugin.Settings.EnableDebug)
@@ -310,15 +310,11 @@ public static class SmartOrdersUtility
 
         Say(message);
     }
-
-
     private static void Say(string message)
     {
         Alert alert = new Alert(AlertStyle.Console, AlertLevel.Info, message, TimeWeather.Now.TotalSeconds);
         WindowManager.Shared.Present(alert);
     }
-
-
     private static Location StartLocation(BaseLocomotive locomotive, List<Car> coupledCarsCached, bool forward)
     {
         var logical = (int)locomotive.EndToLogical(forward ? Car.End.F : Car.End.R);
@@ -376,6 +372,7 @@ public static class SmartOrdersUtility
 
         Car firstCar = cars[0];
 
+
         var maybeFirstCarWaybill = firstCar.GetWaybill(opsController);
         if (maybeFirstCarWaybill == null)
         {
@@ -432,6 +429,7 @@ public static class SmartOrdersUtility
 
         Car newEndCar = cars[carsToDisconnectCount];
 
+
         var groupsMaybePlural = groupsFound > 1 ? "groups of cars" : "group of cars";
 
         var groupsString = numGroups == 999 ? "all cars with waybills" : $"{groupsFound} {groupsMaybePlural}";
@@ -442,10 +440,10 @@ public static class SmartOrdersUtility
 
         var newEndCarEndToDisconnect = (newEndCar.CoupledTo(LogicalEnd.A) == carToDisconnect) ? LogicalEnd.A : LogicalEnd.B;
         var carToDisconnectEndToDisconnect = (carToDisconnect.CoupledTo(LogicalEnd.A) == newEndCar) ? LogicalEnd.A : LogicalEnd.B;
-
-        newEndCar.ApplyEndGearChange(newEndCarEndToDisconnect, EndGearStateKey.CutLever, 1f);
+        carToDisconnect.ApplyEndGearChange(carToDisconnectEndToDisconnect, EndGearStateKey.Anglecock, 1f);
         newEndCar.ApplyEndGearChange(newEndCarEndToDisconnect, EndGearStateKey.Anglecock, 0f);
-        carToDisconnect.ApplyEndGearChange(carToDisconnectEndToDisconnect, EndGearStateKey.Anglecock, 0f);
+        if (carToDisconnect.VelocityMphAbs > 0)
+        { carToDisconnect.ApplyEndGearChange(carToDisconnectEndToDisconnect, EndGearStateKey.Anglecock, 0f); }
+        newEndCar.ApplyEndGearChange(newEndCarEndToDisconnect, EndGearStateKey.CutLever, 1f);
     }
-
 }
