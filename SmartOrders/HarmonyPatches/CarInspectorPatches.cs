@@ -17,6 +17,8 @@ using UI.Builder;
 using UI.CarInspector;
 using UI.Common;
 using UI.EngineControls;
+using System.Reflection.Emit;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using static Model.Car;
@@ -25,76 +27,94 @@ using static Model.Car;
 [HarmonyPatch]
 public static class CarInspectorPatches
 {
-    [HarmonyPrefix]
+    // IMPORTANT: Transpiler attribute and signature must match exactly
+    [HarmonyTranspiler]
     [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
-    private static bool PopulatePanel(UIPanelBuilder builder, CarInspector __instance, Car ____car,
-        UIState<string> ____selectedTabState, HashSet<IDisposable> ____observers)
+    private static IEnumerable<CodeInstruction> PopulatePanel_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
     {
-        if (!SmartOrdersPlugin.Shared!.IsEnabled)
+        var list = new List<CodeInstruction>(instructions);
+
+        // UIPanelBuilder.AddTabbedPanels(UIState<string>, Action<UITabbedPanelBuilder>)
+        var addTabbedPanels = AccessTools.Method(
+            typeof(UIPanelBuilder),
+            "AddTabbedPanels",
+            new[] { typeof(UIState<string>), typeof(Action<UITabbedPanelBuilder>) });
+
+        var wrapMethod = AccessTools.Method(typeof(CarInspectorPatches), nameof(WrapTabsAction));
+
+        for (int i = 0; i < list.Count; i++)
         {
-            return true;
+            var instr = list[i];
+
+            // Just before calling AddTabbedPanels, the stack is:
+            // ... builder, selectedTabState, action
+            // We insert ldarg.0 (this) and call WrapTabsAction(action, this) to replace the action
+            if (instr.Calls(addTabbedPanels))
+            {
+                // Inject: ldarg.0; call WrapTabsAction
+                list.Insert(i, new CodeInstruction(OpCodes.Ldarg_0));
+                list.Insert(i + 1, new CodeInstruction(OpCodes.Call, wrapMethod));
+                i += 2; // skip over the inserted instructions
+            }
         }
 
-        MethodInfo TitleForCar =
-            typeof(CarInspector).GetMethod("TitleForCar", BindingFlags.NonPublic | BindingFlags.Static);
-        MethodInfo SubtitleForCar =
-            typeof(CarInspector).GetMethod("SubtitleForCar", BindingFlags.NonPublic | BindingFlags.Static);
-
-        MethodInfo PopulateCarPanel =
-            typeof(CarInspector).GetMethod("PopulateCarPanel", BindingFlags.NonPublic | BindingFlags.Instance);
-        MethodInfo PopulateEquipmentPanel =
-            typeof(CarInspector).GetMethod("PopulateEquipmentPanel", BindingFlags.NonPublic | BindingFlags.Instance);
-        MethodInfo PopulatePassengerCarPanel = typeof(CarInspector).GetMethod("PopulatePassengerCarPanel",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        MethodInfo PopulateOperationsPanel = typeof(CarInspector).GetMethod("PopulateOperationsPanel",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-
-        MethodInfo Rebuild = typeof(CarInspector).GetMethod("Rebuild", BindingFlags.NonPublic | BindingFlags.Instance);
-
-        AutoEngineerPersistence persistence = new AutoEngineerPersistence(____car.KeyValueObject);
-        var helper = new AutoEngineerOrdersHelper(____car, persistence);
-
-        builder.AddTitle((string)TitleForCar.Invoke(null, [____car]), (string)SubtitleForCar.Invoke(null, [____car]));
-        builder.AddTabbedPanels(____selectedTabState, delegate(UITabbedPanelBuilder tabBuilder)
-        {
-            tabBuilder.AddTab("Car", "car", builder => PopulateCarPanel.Invoke(__instance, [builder]));
-            tabBuilder.AddTab("Equipment", "equipment",
-                (builder) => PopulateEquipmentPanel.Invoke(__instance, [builder]));
-            if (____car.IsPassengerCar())
-            {
-                tabBuilder.AddTab("Passenger", "pass",
-                    (builder) => PopulatePassengerCarPanel.Invoke(__instance, [builder]));
-            }
-
-            if (____car.Archetype != CarArchetype.Tender)
-            {
-                tabBuilder.AddTab("Operations", "ops",
-                    (builder) => PopulateOperationsPanel.Invoke(__instance, [builder]));
-                ____observers.Add(____car.KeyValueObject.Observe("ops.waybill",
-                    delegate { Rebuild.Invoke(__instance, null); }, callInitial: false));
-            }
-
-            if (____car.Archetype == CarArchetype.LocomotiveSteam || ____car.Archetype == CarArchetype.LocomotiveDiesel)
-            {
-                tabBuilder.AddTab("SmartOrders", "smartorders",
-                    builder => BuildMiscTab(builder, (BaseLocomotive)____car, persistence, helper));
-            }
-        });
-
-        return false;
+        return list;
     }
-
-    private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence,
-        AutoEngineerOrdersHelper helper)
+    
+    private static Car? GetInspectedCar(CarInspector inspector)
     {
-        BuildHandbrakeAndAirHelperButtons(builder, _car);
-        BuildDisconnectCarsButtons(builder, (BaseLocomotive)_car, persistence, helper);
+        // Find the first instance field whose type is (assignable to) Car
+        var t = inspector.GetType();
+        var fields = t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        foreach (var f in fields)
+        {
+            if (typeof(Car).IsAssignableFrom(f.FieldType))
+            {
+                return (Car?)f.GetValue(inspector);
+            }
+        }
+        return null;
     }
 
+
+    // Wrap the original tab-builder: run it, then append "SmartOrders"
+    public static Action<UITabbedPanelBuilder> WrapTabsAction(Action<UITabbedPanelBuilder> original, CarInspector inspector)
+    {
+        return tabBuilder =>
+        {
+            original(tabBuilder);
+
+            // Resolve the inspected car without relying on a specific private field name
+            var car = GetInspectedCar(inspector);
+            if (car == null)
+                return;
+
+            if (car.Archetype == CarArchetype.LocomotiveSteam || car.Archetype == CarArchetype.LocomotiveDiesel)
+            {
+                var persistence = new AutoEngineerPersistence(car.KeyValueObject);
+
+                tabBuilder.AddTab(
+                    "Crew",
+                    "smartorders",
+                    b => BuildMiscTab(b, (BaseLocomotive)car, persistence));
+            }
+        };
+    }
+
+    // Your existing tab content (keep minimal if you like)
+    private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive loco, AutoEngineerPersistence persistence)
+    {
+        BuildHandbrakeAndAirHelperButtons(builder, loco);
+        BuildDisconnectCarsButtons(builder, loco, persistence);
+        builder.AddExpandingVerticalSpacer();
+    }
+
+    
     private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
         builder.ButtonStrip(strip =>
             {
+                strip.Spacer(38);
                 var cars = locomotive.EnumerateCoupled().ToList();
 
                 if (cars.Any(c => c.air!.handbrakeApplied))
@@ -125,9 +145,8 @@ public static class CarInspectorPatches
     }
 
     static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive,
-        AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
+        AutoEngineerPersistence persistence)
     {
-        AutoEngineerMode mode2 = helper.Mode;
         builder.FieldLabelWidth = new float?(100f);
         builder.AddField("Uncouple groups",
             builder.ButtonStrip(delegate(UIPanelBuilder builder)

@@ -50,7 +50,8 @@ public static class SmartOrdersUtility
         DebugLog("Checking handbrakes");
         locomotive.EnumerateCoupled().Do(c => c.SetHandbrake(false));
     }
-    
+
+        
     public static void DebugLog(string message)
     {
         if (!SmartOrdersPlugin.Settings.EnableDebug)
