@@ -41,12 +41,6 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
     }
 
     public void ModTabDidOpen(UIPanelBuilder builder) {
-        var lengths = Enum.GetNames(typeof(MeasureType)).ToList();
-        builder.AddField("Measure distance in", builder.AddDropdown(lengths, (int)Settings.MeasureType, o => {
-            Settings.MeasureType = (MeasureType)o;
-            builder.Rebuild();
-        })!);
-
         builder.AddField("Apply handbrakes", builder.AddToggle(() => Settings.AutoApplyHandbrake, o => Settings.AutoApplyHandbrake = o)!)
                 .Tooltip("Apply handbrakes", "When decoupling stationary cars, set the handbrake in the first car");
 
@@ -55,9 +49,7 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
         builder.AddField("Couple air", builder.AddToggle(() => Settings.AutoCoupleAir, o => Settings.AutoCoupleAir = o)!)
                 .Tooltip("Couple air", "In Yard mode, automatically couple air and open anglecocks for any cars in the train before moving");
-
-        builder.AddField("Remove Yard Mode Speed Limit", builder.AddToggle(() => Settings.NoYardSpeedLimit, o => Settings.NoYardSpeedLimit = o)!)
-                .Tooltip("Remove Yard Mode Speed Limit", "Remove 15mph speed limit in yard mode");
+        
 
         builder.AddField("Send debug logs to console", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!);
     }
