@@ -7,6 +7,7 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>disable</Nullable>
+	<GameDir>E:\SteamLibrary\steamapps\common\Railroader</GameDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

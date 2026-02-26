@@ -45,6 +45,31 @@ public static class SmartOrdersUtility
         }
     }
 
+    public static void OilTheTrain(BaseLocomotive locomotive)
+    {
+        DebugLog("Oiling train");
+        var cars = locomotive.EnumerateCoupled();
+        var numOiled = 0;
+
+        if ((double)locomotive.VelocityMphAbs > 5.0)
+        {
+            Say("The brakeman can't walk that fast, slow the fuck down");
+            return;
+        }
+
+        foreach (var car in cars)
+        {
+            if (car.Oiled < .5)
+            {
+                var amount = Mathf.Clamp01(.5f - car.Oiled);
+                StateManager.ApplyLocal(new PropertyChange(car.id, "oiled", new FloatPropertyValue(car.Oiled + amount)));
+                numOiled++;
+            }
+        } 
+
+        Say(numOiled == 0 ? "No cars to oil, looks good boss" : $"Oiled {numOiled} cars boss");
+    }
+
     public static void ReleaseAllHandbrakes(BaseLocomotive locomotive)
     {
         DebugLog("Checking handbrakes");

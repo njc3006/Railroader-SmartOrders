@@ -105,7 +105,6 @@ public static class CarInspectorPatches
     private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive loco, AutoEngineerPersistence persistence)
     {
         BuildHandbrakeAndAirHelperButtons(builder, loco);
-        BuildDisconnectCarsButtons(builder, loco, persistence);
         builder.AddExpandingVerticalSpacer();
     }
 
@@ -139,68 +138,13 @@ public static class CarInspectorPatches
                             "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
                 }
 
+                strip.AddButton("Oil The Train", () =>
+                {
+                    SmartOrdersUtility.OilTheTrain(locomotive);
+                });
+
                 strip.RebuildOnInterval(5f);
             }
         );
-    }
-
-    static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive,
-        AutoEngineerPersistence persistence)
-    {
-        builder.FieldLabelWidth = new float?(100f);
-        builder.AddField("Uncouple groups",
-            builder.ButtonStrip(delegate(UIPanelBuilder builder)
-            {
-                builder.AddButtonCompact("All",
-                    delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, -999, persistence); }).Tooltip(
-                    "Disconnect all cars with waybills from the back",
-                    "Disconnect all cars with waybills from the back");
-
-                builder
-                    .AddButtonCompact("-3",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, -3, persistence); })
-                    .Tooltip("Disconnect 3 Car Groups From Back",
-                        "Disconnect 3 groups of cars from the back that are headed to 3 different locations");
-
-                builder
-                    .AddButtonCompact("-2",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, -2, persistence); })
-                    .Tooltip("Disconnect 2 Car Groups From Back",
-                        "Disconnect 2 groups of cars from the back that are headed to 2 different locations");
-
-                builder
-                    .AddButtonCompact("-1",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, -1, persistence); })
-                    .Tooltip("Disconnect 1 Car Group From Back",
-                        "Disconnect all cars from the back of the train headed to the same location");
-
-                builder
-                    .AddButtonCompact("1",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, 1, persistence); })
-                    .Tooltip("Disconnect 1 Car Group From Front",
-                        "Disconnect all cars from the front of the train headed to the same location");
-
-                builder
-                    .AddButtonCompact("2",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, 2, persistence); })
-                    .Tooltip("Disconnect 2 Car Groups From Front",
-                        "Disconnect 2 groups of cars from the front that are headed to 2 different locations");
-
-                builder
-                    .AddButtonCompact("3",
-                        delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, 3, persistence); })
-                    .Tooltip("Disconnect 3 Car Groups From Front",
-                        "Disconnect 3 groups of cars from the front that are headed to 3 different locations");
-
-                builder.AddButtonCompact("All",
-                    delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, 999, persistence); }).Tooltip(
-                    "Disconnect all cars with waybills from the front",
-                    "Disconnect all cars with waybills from the front");
-                builder.AddButtonCompact("RA",
-                    delegate { SmartOrdersUtility.DisconnectCarGroups(locomotive, 998, persistence); }).Tooltip(
-                    "Disconnect all cars with waybills from the front",
-                    "Disconnect all cars with waybills from the front");
-            }, 4).Tooltip("Disconnect Car Groups",
-                "Disconnect groups of cars headed for the same location from the front (positive numbers) or the back (negative numbers) in the direction of travel"));
     }
 }
