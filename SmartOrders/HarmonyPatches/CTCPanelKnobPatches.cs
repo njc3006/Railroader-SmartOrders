@@ -64,7 +64,7 @@ public class CTCKnobRightClickHandler : MonoBehaviour
             case CTCPanelKnob.Purpose.Signal:
                 newValue = Knob.CurrentDirection switch
                 {
-                    SignalDirection.Left  => 0.5f,
+                    SignalDirection.Left  => 1f,
                     SignalDirection.None  => 1f,
                     SignalDirection.Right => 0f,
                     _                    => 0f
